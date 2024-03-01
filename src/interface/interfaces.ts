@@ -1,8 +1,8 @@
 export interface Evento {
-    id: number;
-    fecha: string;
-    titulo: string;
-    descripcion: string;
+    id: number
+    fecha: string
+    titulo: string
+    descripcion: string
   }
 
 export interface calendarioTabla{
