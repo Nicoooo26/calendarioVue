@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import calendarioMes from './components/calendarioMes.vue';
-import { ref } from 'vue';
+import calendarioMes from './components/calendarioMes.vue'
+import { ref } from 'vue'
 
-const mes = ref<number>(1);
-const anio = ref<number>(2024);
+const mes = ref<number>(1)
+const anio = ref<number>(2024)
 const meses: string[] = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-];
+]
 
 const previousMonth = () => {
-  mes.value = (mes.value - 1 + 12) % 12 || 12;
-};
+  mes.value = (mes.value - 1 + 12) % 12 || 12
+}
 
 const nextMonth = () => {
-  mes.value = (mes.value % 12) + 1;
-};
+  mes.value = (mes.value % 12) + 1
+}
 
 const previousYear = () => {
-  anio.value--;
-};
+  anio.value--
+}
 
 const nextYear = () => {
-  anio.value++;
-};
+  anio.value++
+}
 </script>
 <template>
   <div class="container">
@@ -36,7 +36,7 @@ const nextYear = () => {
         <button @click="nextYear" class="navigation-button">&gt;&gt;</button>
       </div>
     </div>
-    <calendarioMes :mes="mes" :anio="anio" />
+    <calendarioMes :mes="mes" :anio="anio" @mesMenos="previousMonth" @mesMas="nextMonth"/>
   </div>
 </template>
 
@@ -85,3 +85,4 @@ const nextYear = () => {
   background-color: #0056b3;
 }
 </style>
+
