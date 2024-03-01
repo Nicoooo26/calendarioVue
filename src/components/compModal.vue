@@ -1,28 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { crearEvento, modificarEvento } from '@/api';
-
+import { ref } from 'vue'
+import { crearEvento, modificarEvento, obtenerEventos } from '@/api'
+import { useEventosStore } from '@/store/eventosStore'
+import type { Evento } from '@/interface/interfaces'
 interface Props {
-  fecha?: string;
-  evento: { id: number; fecha: string; titulo: string; descripcion: string }|null;
+  fecha?: string
+  evento: Evento|null
 }
 
+const store = useEventosStore()
 
 const titulo = ref<string>('')
 const descripcion=ref<string>(' ')
 const fechaModificada=ref<string|undefined>('')
 
 const emits = defineEmits(['cerrar'])
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
-titulo.value = props.evento? props.evento.titulo : '';
-descripcion.value = props.evento? props.evento.descripcion : '';
-fechaModificada.value =  props.evento? props.evento.fecha: props.fecha; 
+titulo.value = props.evento? props.evento.titulo : ''
+descripcion.value = props.evento? props.evento.descripcion : ''
+fechaModificada.value =  props.evento? props.evento.fecha: props.fecha
 
 // Método para generar un ID aleatorio
 const generarID = () => {
-  return Math.floor(Math.random() * 100000);
-};
+  return Math.floor(Math.random() * 100000)
+}
 
 // Método para guardar el evento (ya sea creación o modificación)
 const guardarEvento = async () => {
@@ -31,19 +33,20 @@ const guardarEvento = async () => {
     fecha: fechaModificada.value!,
     titulo: titulo.value.toUpperCase(),
     descripcion: descripcion.value
-  };
+  }
 
   if (props.evento) {
-    await modificarEvento(eventoModificado);
+    await modificarEvento(eventoModificado)
   } else {
-    await crearEvento(eventoModificado);
+    await crearEvento(eventoModificado)
   }
   // Limpia el formulario y cierra el modal después de guardar
-  titulo.value = '';
-  descripcion.value = '';
-  emits('cerrar');
+  titulo.value = ''
+  descripcion.value = ''
+  emits('cerrar')
+  store.eventos=await obtenerEventos()
 
-};
+}
 
 
 </script>
@@ -150,4 +153,5 @@ const guardarEvento = async () => {
     background-color: #0056b3;
   }
   </style>
+  
   
