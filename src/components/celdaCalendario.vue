@@ -1,7 +1,8 @@
 <!-- celdaCalendario.vue -->
 <script setup lang="ts">
-import { onMounted, ref, watch} from 'vue'
-import { eliminarEvento ,obtenerEventosPorFecha} from '@/api'
+import { ref, watchEffect} from 'vue'
+import { eliminarEvento,obtenerEventos} from '@/api'
+import { useEventosStore } from '@/store/eventosStore'
 import compModal from './compModal.vue'
 import type { Evento } from '@/interface/interfaces'
 
@@ -9,55 +10,47 @@ interface Props {
   fecha: string
 }
 
+const store = useEventosStore()
+
 const emits = defineEmits<{
   dragEvento : [evento:Evento]
 }>()
 const props = defineProps<Props>()
-const eventos=ref<Evento[]>([])
 const mostrarModal = ref(false)
 const eventoModificar = ref<Evento | null>(null)
 const draggedItem = ref<Evento>()
+const eventosFiltrados=ref<Evento[]>([])
 
-const obtenerEventos = async() => {
-  try{
-    eventos.value=await obtenerEventosPorFecha(props.fecha)
-  }catch(e){
-    console.log(e)
-  }
+
+watchEffect(()=>{
+  eventosFiltrados.value=store.eventosPorFecha(props.fecha)
 }
-
-onMounted(()=>{
-  obtenerEventos()
-})
-
-// watch(eventos,()=>{
-//   obtenerEventos()
-// }
-// )
+)
 
 // Función para eliminar un evento
 const eliminarEventoLocal = async (id: number) => {
   try {
     // Eliminar el evento del JSON
-    await eliminarEvento(id);
+    await eliminarEvento(id)
+    store.eventos=await obtenerEventos()
   } catch (error) {
-    console.error('Error al eliminar el evento:', error);
+    console.error('Error al eliminar el evento:', error)
   }
-};
+}
 
 const abrirModal = () => {
-  mostrarModal.value = true;
-};
+  mostrarModal.value = true
+}
 
 const abrirModalModificar = (evento: Evento): void => {
-  eventoModificar.value = evento;
-  abrirModal();
-};
+  eventoModificar.value = evento
+  abrirModal()
+}
 
 const cerrarModal = () => {
   mostrarModal.value = false
   eventoModificar.value = null
-};
+}
 const controlarEmit = () => {
   cerrarModal()
 }
@@ -79,7 +72,7 @@ const handleDragStart = (evento:Evento) =>{
 </svg></button>
     </div>
         <div class="divEvento"
-         v-for="evento in eventos" 
+         v-for="evento in eventosFiltrados" 
          :key="evento.id" 
          :draggable="true"
          @dragstart="handleDragStart(evento)" >
@@ -177,3 +170,4 @@ const handleDragStart = (evento:Evento) =>{
   gap: 10px;
 }
 </style>
+
