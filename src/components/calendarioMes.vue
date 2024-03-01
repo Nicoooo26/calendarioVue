@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import {computed,ref } from 'vue'
+import {computed,onMounted,ref } from 'vue'
 import celdaCalendario from '@/components/celdaCalendario.vue'
-import { modificarEvento } from '@/api';
+import { modificarEvento } from '@/api'
 import type { Evento,calendarioTabla } from '@/interface/interfaces'
+import { useEventosStore } from '@/store/eventosStore'
+import { obtenerEventos } from '@/api'
 
+
+const store = useEventosStore()
+const emits = defineEmits(['mesMenos','mesMas'])
 
 const props = withDefaults(defineProps<calendarioTabla>(),{
             cols: ()=> ['Lunes', 'Martes', 'Miércoles', 'Jueves','Viernes','Sábado', 'Domingo'],
@@ -14,38 +19,78 @@ const props = withDefaults(defineProps<calendarioTabla>(),{
 
 
 })
+onMounted(async()=>{
+  store.eventos= await obtenerEventos()
+})
 
-//Convertimos el número de orden del día en filas y columnas
-const anadevalorSecuencial = (numero: number, valor: string, celdas: string[][]) => {
-    const fila = Math.floor(numero / props.COLS);
-    const columna = numero % props.COLS;
-    celdas[fila][columna] = valor;
-}
+const tablaMes = computed(() => {
+  const celdas: string[][] = []
 
-const tablaMes = computed(() =>{
-  const celdas: string[][] = Array.from(Array(props.COLS).keys()).map(() =>
-                        Array.from(Array(props.ROWS).keys()).map(() => ''))
-  const primerDia = new Date(`${props.anio}-${props.mes}-1`)
-  const posicionPrimerDia = [6,0,1,2,3,4,5][primerDia.getDay()]
+  // Inicializamos la matriz de celdas con cadenas vacías
+  for (let i = 0; i < props.ROWS; i++) {
+    celdas.push(Array(props.COLS).fill(''))
+  }
+
+  const primerDia = new Date(props.anio, props.mes - 1, 1)
+  const posicionPrimerDia = primerDia.getDay() === 0 ? 6 : primerDia.getDay() - 1
   const numDiasMes = new Date(props.anio, props.mes, 0).getDate()
-  const rangoNumeros = [...Array(numDiasMes).keys()].map(i => i + posicionPrimerDia )
-  // Recorremos el rango de números para añadir la fecha
-  rangoNumeros.map((el,ind)=> {
-    const day = (ind + 1).toString().padStart(2, '0'); // Agrega cero a la izquierda si es necesario
-    const fecha = `${props.anio}-${props.mes.toString().padStart(2, '0')}-${day}`; // Formatea el mes y el día
-    anadevalorSecuencial(el, fecha, celdas);
-  });
-  return celdas;
-});
+
+  let contador = 1
+  for (let fila = 0; fila < props.ROWS; fila++) {
+    for (let columna = 0; columna < props.COLS; columna++) {
+      if (fila === 0 && columna < posicionPrimerDia) {
+        // Dejamos las primeras celdas vacías si no pertenecen al mes actual
+        continue
+      }
+      if (contador > numDiasMes) {
+        // Si ya hemos añadido todos los días del mes, salimos del bucle
+        break
+      }
+      const day = contador.toString().padStart(2, '0')
+      const fecha = `${props.anio}-${props.mes.toString().padStart(2, '0')}-${day}`
+      celdas[fila][columna] = fecha
+      contador++
+    }
+    if (contador > numDiasMes) {
+      break
+    }
+  }
+  return celdas
+})
+
 
 const draggedItem = ref<Evento>()
 
 const recogerDrag = (obj:Evento) => {
   draggedItem.value=obj
 }
+let timeout: ReturnType<typeof setTimeout> | null = null
+
 const handleDragOver = (event: DragEvent) => {
-  event.preventDefault();
+  event.preventDefault()
+
+  const x = event.clientX
+
+  if (x < 50) {
+    if (!timeout) {
+      timeout = setTimeout(() => {
+        emits('mesMenos')
+        timeout = null
+      }, 500) // Retraso de 500 milisegundos (0.5 segundos)
+    }
+  } else if (x > window.innerWidth - 50) {
+    if (!timeout) {
+      timeout = setTimeout(() => {
+        emits('mesMas')
+        timeout = null
+      }, 500) // Retraso de 500 milisegundos (0.5 segundos)
+    }
+  } else {
+    clearTimeout(timeout!)
+    timeout = null
+  }
 }
+
 
 const handleDrop = async(fecha:string) => {
   try{
@@ -61,7 +106,7 @@ const handleDrop = async(fecha:string) => {
 </script>
 
 <template>
-   <table class="calendar">
+   <table class="calendar" @dragover="handleDragOver">
     <thead>
       <tr>
         <th v-for="c in cols" :key="c">{{ c }}</th>
@@ -70,7 +115,7 @@ const handleDrop = async(fecha:string) => {
     <tbody>
       <tr v-for="i in props.ROWS" :key="i">
         <td v-for="(c, j) in cols" :key="c">
-          <celdaCalendario v-if="tablaMes[i-1][j]!=undefined"
+          <celdaCalendario v-if="tablaMes[i-1][j]"
             :fecha="tablaMes[i-1][j]" 
             @dragover="handleDragOver"
             @drop.prevent="()=>handleDrop(tablaMes[i-1][j])"
