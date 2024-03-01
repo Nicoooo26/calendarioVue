@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import calendarioMes from './components/calendarioMes.vue'
-import { ref } from 'vue'
+import { ref ,watch} from 'vue'
 
 const mes = ref<number>(1)
 const anio = ref<number>(2024)
@@ -24,10 +24,29 @@ const previousYear = () => {
 const nextYear = () => {
   anio.value++
 }
+
+const selectedOption = ref<string>('all')
+
+const selectedCols = ref<string[]>(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'])
+
+watch(selectedOption, (newValue) => {
+  if (newValue === '5days') {
+    selectedCols.value = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+  } else {
+    selectedCols.value = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+  }
+})
+
 </script>
 <template>
   <div class="container">
     <div class="inputs">
+      <div class="select-container">
+        <select v-model="selectedOption" class="select-days">
+          <option value="all">Todos los días</option>
+          <option value="5days">Lunes-Viernes</option>
+        </select>
+      </div>
       <div class="navigation">
         <button @click="previousYear" class="navigation-button">&lt;&lt;</button>
         <button @click="previousMonth" class="navigation-button">&lt;</button>
@@ -35,11 +54,11 @@ const nextYear = () => {
         <button @click="nextMonth" class="navigation-button">&gt;</button>
         <button @click="nextYear" class="navigation-button">&gt;&gt;</button>
       </div>
+      <div></div>
     </div>
-    <calendarioMes :mes="mes" :anio="anio" @mesMenos="previousMonth" @mesMas="nextMonth"/>
+    <calendarioMes :mes="mes" :anio="anio" :cols="selectedCols" @mesMenos="previousMonth" @mesMas="nextMonth"/>
   </div>
 </template>
-
 <style scoped>
 .container {
   text-align: center;
@@ -49,9 +68,9 @@ const nextYear = () => {
 }
 
 .inputs {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: auto auto auto; /* Tres columnas de igual tamaño */
+  gap: 200px; 
   padding-bottom: 20px;
   padding-top: 15px;
   border: 1px solid black;
@@ -81,8 +100,16 @@ const nextYear = () => {
   margin: 0;
 }
 
+.select-days {
+  padding: 8px;
+  border-radius: 5px;
+  background-color: white;
+  color: black;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  outline: none; /* Quita el contorno al seleccionar */
+}
 .navigation-button:hover {
   background-color: #0056b3;
 }
 </style>
-
