@@ -7,10 +7,10 @@ Pasamos a TS el código que previamente se encontraba en Javascript
 # Creamos el componente a parte y le pasamos el día de inicio, parametrizamos los días de la semana 
 - Hecho
 # Cargamos todos los días en el calendario
-- Pendiente
+- Hecho
 # Creamos un navegador por meses
-- Pendiente
+- Hecho
 # Permitimos añadir tareas en un día del calendario
-- Pendiente
+- Hecho
 # Podemos modificar la tarea para que cambie de fecha, propietario y conteniodo
-- Pendiente
+- Hecho
