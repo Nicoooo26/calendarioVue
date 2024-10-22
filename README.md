@@ -1,5 +1,6 @@
 # Proyecto Calendario
 
+***Funcionalidad:
 El proyecto trata de un calendario para organizar tareas con todas sus funciones.
 
 Para Probar el proyecto siga estos pasos:
